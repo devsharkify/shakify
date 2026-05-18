@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Sharkify — We're upgrading</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0F1318;
+    --bg-2:#161B22;
+    --ink:#0B0F14;
+    --line: rgba(255,255,255,.08);
+    --line-2: rgba(255,255,255,.14);
+    --text:#FFFFFF;
+    --muted: rgba(255,255,255,.55);
+    --dim: rgba(255,255,255,.38);
+    --orange:#FF5A1F;
+    --orange-2:#FF7A45;
+    --orange-soft: rgba(255,90,31,.14);
+    --paper:#FFFFFF;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{
+    font-family:'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  /* ====== Backdrop ====== */
+  .bg{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(60% 50% at 80% 10%, rgba(255,90,31,.18), transparent 60%),
+      radial-gradient(70% 60% at 0% 100%, rgba(255,90,31,.10), transparent 60%),
+      var(--bg);
+  }
+  .grid-bg{
+    position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px);
+    background-size: 56px 56px;
+    mask-image: radial-gradient(80% 60% at 50% 40%, #000 30%, transparent 90%);
+    -webkit-mask-image: radial-gradient(80% 60% at 50% 40%, #000 30%, transparent 90%);
+  }
+  .grain{
+    position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.5;mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 .25 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  }
+
+  /* big orange shark watermark */
+  .watermark{
+    position:fixed; z-index:0; pointer-events:none;
+    right:-8vw; top:50%; transform:translateY(-50%);
+    width: 70vw; max-width: 1100px;
+    opacity:.07;
+    color:var(--orange);
+  }
+  .watermark svg{display:block;width:100%;height:auto;}
+
+  /* ====== Frame ====== */
+  .page{
+    position:relative; z-index:2;
+    min-height:100%;
+    display:grid;
+    grid-template-rows: auto 1fr auto;
+    padding: 22px 28px 18px;
+  }
+
+  /* top bar */
+  .top{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:16px;
+  }
+  .brand{
+    display:flex;align-items:center;gap:12px;
+  }
+  .logo{
+    width:38px;height:38px;display:grid;place-items:center;
+    background:var(--orange); border-radius:10px;
+    box-shadow: 0 6px 24px rgba(255,90,31,.35), inset 0 0 0 1px rgba(255,255,255,.08);
+  }
+  .logo svg{width:24px;height:24px;color:#fff;}
+  .brand-name{
+    font-weight:800;font-size:18px;letter-spacing:-.01em;
+  }
+  .brand-name .dot{color:var(--orange);}
+  .status{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:'JetBrains Mono', monospace; font-size:11px;
+    letter-spacing:.18em; text-transform:uppercase;
+    color:var(--muted);
+    padding:7px 12px;border:1px solid var(--line);border-radius:999px;
+    background:rgba(255,255,255,.02);
+  }
+  .status .pip{width:6px;height:6px;border-radius:50%;background:var(--orange);box-shadow:0 0 12px var(--orange);animation:pulse 1.6s ease-in-out infinite;}
+  @keyframes pulse{50%{opacity:.4;}}
+
+  /* ====== Hero card ====== */
+  .stage{
+    display:grid; place-items:center;
+    padding: 40px 0;
+  }
+  .card{
+    width:min(1100px, 100%);
+    background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.01));
+    border:1px solid var(--line);
+    border-radius:24px;
+    overflow:hidden;
+    box-shadow: 0 30px 80px rgba(0,0,0,.5), 0 1px 0 rgba(255,255,255,.03) inset;
+    position:relative;
+  }
+  /* corner ticks inside card */
+  .card .ct{position:absolute;width:14px;height:14px;border:1px solid var(--line-2);}
+  .card .ct.tl{top:14px;left:14px;border-right:0;border-bottom:0;}
+  .card .ct.tr{top:14px;right:14px;border-left:0;border-bottom:0;}
+  .card .ct.bl{bottom:14px;left:14px;border-right:0;border-top:0;}
+  .card .ct.br{bottom:14px;right:14px;border-left:0;border-top:0;}
+
+  .card-inner{
+    display:grid;
+    grid-template-columns: 1.05fr .95fr;
+    min-height: 540px;
+  }
+
+  /* LEFT: copy */
+  .copy{
+    padding: 56px 56px 44px;
+    display:flex;flex-direction:column;justify-content:center;
+    border-right:1px solid var(--line);
+    position:relative;
+    min-width: 0;
+  }
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:10px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px; letter-spacing:.28em; text-transform:uppercase;
+    color:var(--orange);
+    padding:7px 12px;border:1px solid rgba(255,90,31,.35);border-radius:999px;
+    background:var(--orange-soft);
+    width:max-content;
+    margin-bottom:28px;
+  }
+  h1.title{
+    font-size: clamp(48px, 6.4vw, 92px);
+    line-height:.95;
+    letter-spacing:-.035em;
+    font-weight:800;
+    margin-bottom:18px;
+  }
+  h1.title .o{color:var(--orange); display:inline-block; position:relative;}
+  h1.title .o::after{
+    content:""; position:absolute; left:0; right:0; bottom:.08em;
+    height:.12em; background:var(--orange); opacity:.18; border-radius:2px;
+  }
+  .lede{
+    color:var(--muted);
+    font-size:17px; line-height:1.6;
+    max-width: 48ch;
+    margin-bottom: 36px;
+  }
+  .lede b{color:#fff;font-weight:600;}
+
+  /* Buttons */
+  .actions{display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+  .btn{
+    display:inline-flex;align-items:center;gap:10px;
+    padding: 14px 20px; border-radius: 12px;
+    font-weight:700; font-size:14px; letter-spacing:-.005em;
+    border:1px solid transparent;
+    cursor:pointer; transition: transform .15s ease, background .2s ease;
+    text-decoration:none;
+  }
+  .btn.primary{ background:var(--orange); color:#fff; box-shadow: 0 10px 24px rgba(255,90,31,.35);}
+  .btn.primary:hover{ background:var(--orange-2); transform:translateY(-1px);}
+  .btn.ghost{ background:transparent; color:#fff; border-color:var(--line-2);}
+  .btn.ghost:hover{ background:rgba(255,255,255,.04);}
+  .btn svg{width:16px;height:16px;}
+
+  /* ticker of features being upgraded */
+  .ticker{
+    margin-top:36px;
+    padding-top:24px;
+    border-top:1px dashed var(--line);
+    display:flex;align-items:center;gap:14px;
+    font-family:'JetBrains Mono', monospace; font-size:11px;
+    color:var(--dim); letter-spacing:.16em; text-transform:uppercase;
+    overflow:hidden;
+  }
+  .ticker .label{flex-shrink:0;color:var(--orange);}
+  .ticker .track{
+    flex:1; min-width:0; overflow:hidden; mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+  .ticker .run{display:inline-flex;gap:32px;animation: tick 22s linear infinite; white-space:nowrap;}
+  .ticker .run span::before{content:"◆"; color:var(--orange); margin-right:10px; opacity:.7;}
+  @keyframes tick{0%{transform:translateX(0);} 100%{transform:translateX(-50%);}}
+
+  /* RIGHT: countdown / launch panel */
+  .panel{
+    padding: 48px 48px 40px;
+    background:
+      linear-gradient(180deg, rgba(255,90,31,.06), transparent 50%),
+      radial-gradient(80% 60% at 100% 0%, rgba(255,90,31,.10), transparent 60%);
+    display:flex;flex-direction:column;justify-content:space-between;
+    gap:24px;
+    position:relative;
+  }
+  .panel-head{
+    display:flex;align-items:center;justify-content:space-between;
+    font-family:'JetBrains Mono', monospace; font-size:10px;
+    letter-spacing:.28em; text-transform:uppercase; color:var(--dim);
+  }
+  .panel-head b{color:#fff;font-weight:500;}
+
+  .launch{
+    display:flex;flex-direction:column;align-items:flex-start;gap:14px;
+  }
+  .launch .when{
+    font-family:'JetBrains Mono', monospace; font-size:11px;
+    letter-spacing:.28em; text-transform:uppercase; color:var(--orange);
+  }
+  .launch .date{
+    font-size: clamp(40px, 5.2vw, 64px);
+    font-weight:800; letter-spacing:-.035em; line-height:1;
+  }
+  .launch .date .day{color:var(--orange);}
+  .launch .date small{
+    display:block; margin-top:8px;
+    font-size:13px; font-weight:500; color:var(--muted);
+    letter-spacing:0; text-transform:none;
+  }
+
+  /* digit grid */
+  .countdown{
+    display:grid; grid-template-columns: repeat(4, 1fr);
+    gap:10px;
+    margin-top:8px;
+  }
+  .unit{
+    position:relative;
+    border:1px solid var(--line-2);
+    border-radius:14px;
+    padding:18px 8px 12px;
+    background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0));
+    text-align:center;
+    overflow:hidden;
+  }
+  .unit::before{
+    content:""; position:absolute; top:0; left:0; right:0; height:1px;
+    background: linear-gradient(90deg, transparent, var(--orange), transparent);
+    opacity:.6;
+  }
+  .num{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:500;
+    font-size: clamp(28px, 3.4vw, 42px);
+    line-height:1; letter-spacing:-.03em;
+    font-variant-numeric: tabular-nums;
+    color:#fff;
+  }
+  .lbl{
+    margin-top:8px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:9px; letter-spacing:.24em; text-transform:uppercase;
+    color:var(--dim);
+  }
+
+  /* progress bar */
+  .progress{
+    margin-top: 6px;
+  }
+  .progress .head{
+    display:flex;justify-content:space-between;
+    font-family:'JetBrains Mono', monospace; font-size:10px;
+    letter-spacing:.24em; text-transform:uppercase; color:var(--dim);
+    margin-bottom:8px;
+  }
+  .progress .head b{color:#fff;font-weight:500;}
+  .bar{
+    height:6px; background:rgba(255,255,255,.06); border-radius:6px; overflow:hidden;
+    position:relative;
+  }
+  .bar > i{
+    display:block; height:100%; width:0%;
+    background: linear-gradient(90deg, var(--orange), var(--orange-2));
+    border-radius:6px;
+    box-shadow: 0 0 18px rgba(255,90,31,.55);
+    transition: width 1s ease;
+  }
+
+  /* ====== Bottom strip ====== */
+  .bot{
+    display:flex;align-items:center;justify-content:space-between;
+    gap:18px;
+    font-family:'JetBrains Mono', monospace; font-size:11px;
+    color:var(--dim); letter-spacing:.18em; text-transform:uppercase;
+    padding-top:20px;
+    border-top:1px solid var(--line);
+    margin-top: 20px;
+  }
+  .bot a{color:var(--muted);text-decoration:none;}
+  .bot a:hover{color:#fff;}
+  .bot .links{display:flex;gap:22px;}
+
+  /* ====== Responsive ====== */
+  @media (max-width: 900px){
+    .page{padding:18px 16px;}
+    .card-inner{grid-template-columns:1fr;}
+    .copy{padding:36px 28px 28px;border-right:0;border-bottom:1px solid var(--line);}
+    .panel{padding:32px 28px;}
+    .bot{flex-direction:column;align-items:flex-start;gap:10px;}
+    .bot .links{flex-wrap:wrap;}
+  }
+  @media (max-width: 480px){
+    .countdown{grid-template-columns:repeat(2,1fr);}
+  }
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="grid-bg"></div>
+
+<!-- Big watermark shark -->
+<div class="watermark" aria-hidden="true">
+  <svg viewBox="0 0 600 400" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
+    <!-- body -->
+    <path d="M70 240 C 130 180, 230 150, 340 160 C 400 165, 440 180, 470 195 L 520 175 C 540 168, 560 175, 565 195 C 568 212, 555 224, 535 226 L 510 228 C 535 244, 545 262, 540 280 C 533 304, 505 300, 480 286 L 450 270 C 400 282, 320 285, 250 278 C 170 270, 110 258, 70 240 Z"/>
+    <!-- dorsal fin -->
+    <path d="M310 165 L 350 90 L 400 170 Z"/>
+    <!-- tail -->
+    <path d="M510 228 L 565 200 L 555 245 L 580 280 L 520 260 Z"/>
+    <!-- pectoral -->
+    <path d="M280 235 L 250 300 L 360 255 Z"/>
+  </svg>
+</div>
+
+<div class="grain"></div>
+
+<main class="page">
+
+  <!-- ====== TOP ====== -->
+  <header class="top">
+    <div class="brand">
+      <div class="logo" aria-hidden="true">
+        <!-- Mini shark mark -->
+        <svg viewBox="0 0 32 32" fill="currentColor">
+          <path d="M3 17 C 7 13, 13 11, 19 12 C 22 12.5, 24 13.5, 26 14.5 L 28 13.5 C 29 13, 30.2 13.5, 30.2 15 C 30.2 16.2, 29.2 16.7, 28.2 16.7 L 27 16.7 C 28.5 17.6, 29 18.6, 28.6 19.7 C 28.1 21.1, 26.4 20.9, 25 20 L 23.5 19 C 20.5 19.7, 16 19.9, 12 19.5 C 7.5 19, 4.5 18.3, 3 17 Z"/>
+          <path d="M16 12 L 18.5 7 L 21.5 12.5 Z"/>
+          <path d="M27 16.7 L 30.5 15 L 30 18 L 31.5 20.5 L 27.8 19.2 Z"/>
+          <path d="M14 18.2 L 12.5 22 L 18 19.4 Z"/>
+        </svg>
+      </div>
+      <div class="brand-name">Sharkify<span class="dot">.ai</span></div>
+    </div>
+    <div class="status"><span class="pip"></span> System upgrading · v2.0</div>
+  </header>
+
+  <!-- ====== STAGE / CARD ====== -->
+  <section class="stage">
+    <div class="card">
+      <i class="ct tl"></i><i class="ct tr"></i><i class="ct bl"></i><i class="ct br"></i>
+
+      <div class="card-inner">
+
+        <!-- LEFT -->
+        <div class="copy">
+          <span class="eyebrow"><span style="width:6px;height:6px;border-radius:50%;background:var(--orange);box-shadow:0 0 10px var(--orange)"></span> Maintenance Mode</span>
+
+          <h1 class="title">
+            We're <span class="o">upgrading</span><br/>
+            the tank.
+          </h1>
+
+          <p class="lede">
+            Sharkify is offline while we sharpen the teeth — faster scheduling, smarter audience tools, and a leaner workflow. <b>We're back on 25 May 2026.</b>
+          </p>
+
+          <div class="actions">
+            <a class="btn primary" href="#notify">
+              Notify me
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h16"/><path d="M14 6l6 6-6 6"/></svg>
+            </a>
+            <a class="btn ghost" href="/cdn-cgi/l/email-protection#4a222f2626250a39222b3821232c33642b23">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+              Contact support
+            </a>
+          </div>
+
+          <div class="ticker" aria-hidden="true">
+            <div class="label">Shipping</div>
+            <div class="track">
+              <div class="run">
+                <span>Smart Scheduler</span>
+                <span>AI Captions v2</span>
+                <span>Bulk Auto-Post</span>
+                <span>Audience Insights</span>
+                <span>Team Spaces</span>
+                <span>Inbox Hub</span>
+                <span>Smart Scheduler</span>
+                <span>AI Captions v2</span>
+                <span>Bulk Auto-Post</span>
+                <span>Audience Insights</span>
+                <span>Team Spaces</span>
+                <span>Inbox Hub</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT -->
+        <div class="panel">
+          <div class="panel-head">
+            <span>Launch window</span>
+            <span><b>09:00 UTC</b></span>
+          </div>
+
+          <div class="launch">
+            <div class="when">We resurface on</div>
+            <div class="date">
+              <span class="day">25</span> May 2026
+              <small>Monday · Save the date</small>
+            </div>
+          </div>
+
+          <div>
+            <div class="countdown" id="cd" aria-label="Countdown to launch">
+              <div class="unit"><div class="num" id="dd">00</div><div class="lbl">Days</div></div>
+              <div class="unit"><div class="num" id="hh">00</div><div class="lbl">Hours</div></div>
+              <div class="unit"><div class="num" id="mm">00</div><div class="lbl">Minutes</div></div>
+              <div class="unit"><div class="num" id="ss">00</div><div class="lbl">Seconds</div></div>
+            </div>
+
+            <div class="progress">
+              <div class="head">
+                <span>Upgrade progress</span>
+                <span><b id="pct">0%</b></span>
+              </div>
+              <div class="bar"><i id="bar"></i></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== BOTTOM ====== -->
+  <footer class="bot">
+    <span>© 2026 Sharkify.ai · All fins reserved</span>
+    <div class="links">
+      <a href="/cdn-cgi/l/email-protection#97fff2fbfbf8d7e4fff6e5fcfef1eeb9f6fe"><span class="__cf_email__" data-cfemail="b4dcd1d8d8dbf4c7dcd5c6dfddd2cd9ad5dd">[email&#160;protected]</span></a>
+      <a href="#">Status</a>
+      <a href="#">Twitter / X</a>
+      <a href="#">Instagram</a>
+    </div>
+  </footer>
+</main>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  // Countdown to 25 May 2026, 09:00 UTC
+  const TARGET = new Date(Date.UTC(2026, 4, 25, 9, 0, 0)).getTime();
+  // Assume an upgrade window started 14 days before launch (for progress %)
+  const START  = TARGET - 14 * 86400000;
+
+  const pad = n => String(Math.max(0, n)).padStart(2,'0');
+  const $ = id => document.getElementById(id);
+
+  function tick(){
+    const now = Date.now();
+    let diff = Math.max(0, TARGET - now);
+    const d = Math.floor(diff / 86400000); diff -= d*86400000;
+    const h = Math.floor(diff / 3600000);  diff -= h*3600000;
+    const m = Math.floor(diff / 60000);    diff -= m*60000;
+    const s = Math.floor(diff / 1000);
+    $('dd').textContent = pad(d);
+    $('hh').textContent = pad(h);
+    $('mm').textContent = pad(m);
+    $('ss').textContent = pad(s);
+
+    // progress
+    const total = TARGET - START;
+    const done = Math.min(total, Math.max(0, now - START));
+    const pct = Math.round((done/total) * 100);
+    $('pct').textContent = pct + '%';
+    $('bar').style.width = pct + '%';
+  }
+  tick(); setInterval(tick, 1000);
+</script>
+
+</body>
+</html>
